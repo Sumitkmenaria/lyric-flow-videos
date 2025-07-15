@@ -41,10 +41,10 @@ export const LyricTimeline = ({
     return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
   };
 
-  const getTimeFromPosition = (clientX: number) => {
+  const getTimeFromPosition = (clientY: number) => {
     if (!timelineRef.current) return 0;
     const rect = timelineRef.current.getBoundingClientRect();
-    const position = (clientX - rect.left) / rect.width;
+    const position = (clientY - rect.top) / rect.height;
     return Math.max(0, Math.min(duration, position * duration));
   };
 
@@ -54,7 +54,7 @@ export const LyricTimeline = ({
 
   const handleTimelineClick = (e: React.MouseEvent) => {
     if (draggedLyric) return;
-    const time = getTimeFromPosition(e.clientX);
+    const time = getTimeFromPosition(e.clientY);
     onSeek(time);
   };
 
@@ -68,7 +68,7 @@ export const LyricTimeline = ({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!draggedLyric || !dragType) return;
 
-    const time = getTimeFromPosition(e.clientX);
+    const time = getTimeFromPosition(e.clientY);
     const lyric = lyrics.find(l => l.id === draggedLyric);
     if (!lyric) return;
 
@@ -108,7 +108,7 @@ export const LyricTimeline = ({
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Label className="text-lg font-semibold">Lyric Timeline</Label>
+          <Label className="text-lg font-semibold text-foreground">Lyric Timeline</Label>
           <div className="flex space-x-2">
             <Button
               size="sm"
@@ -125,7 +125,7 @@ export const LyricTimeline = ({
           </div>
         </div>
 
-        {/* Timeline */}
+        {/* Vertical Timeline */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>0:00</span>
@@ -134,7 +134,7 @@ export const LyricTimeline = ({
           
           <div
             ref={timelineRef}
-            className="relative h-20 bg-secondary rounded-lg border border-glass cursor-pointer overflow-hidden"
+            className="relative w-full h-96 bg-secondary rounded-lg border border-glass cursor-pointer overflow-hidden"
             onClick={handleTimelineClick}
             onMouseMove={handleMouseMove}
           >
@@ -142,10 +142,10 @@ export const LyricTimeline = ({
             {Array.from({ length: Math.ceil(duration / 10) }, (_, i) => (
               <div
                 key={i}
-                className="absolute top-0 bottom-0 w-px bg-border"
-                style={{ left: `${(i * 10 / duration) * 100}%` }}
+                className="absolute left-0 right-0 h-px bg-border"
+                style={{ top: `${(i * 10 / duration) * 100}%` }}
               >
-                <span className="absolute top-1 left-1 text-xs text-muted-foreground">
+                <span className="absolute left-1 -top-2 text-xs text-muted-foreground bg-secondary px-1 rounded">
                   {Math.floor(i * 10 / 60)}:{((i * 10) % 60).toString().padStart(2, '0')}
                 </span>
               </div>
@@ -153,24 +153,24 @@ export const LyricTimeline = ({
 
             {/* Current time indicator */}
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-primary z-20"
-              style={{ left: `${getPositionFromTime(currentTime)}%` }}
+              className="absolute left-0 right-0 h-0.5 bg-primary z-20"
+              style={{ top: `${getPositionFromTime(currentTime)}%` }}
             >
-              <div className="absolute -top-1 -left-1 w-3 h-3 bg-primary rounded-full" />
+              <div className="absolute -left-1 -top-1 w-3 h-3 bg-primary rounded-full" />
             </div>
 
             {/* Lyric blocks */}
             {lyrics.map((lyric, index) => (
               <div
                 key={lyric.id}
-                className={`absolute top-2 bottom-2 rounded cursor-move transition-all ${
+                className={`absolute left-2 right-2 rounded cursor-move transition-all ${
                   selectedLyric === lyric.id
                     ? 'bg-accent border-2 border-primary'
                     : 'bg-accent/70 border border-accent hover:bg-accent'
                 }`}
                 style={{
-                  left: `${getPositionFromTime(lyric.startTime)}%`,
-                  width: `${getPositionFromTime(lyric.endTime - lyric.startTime)}%`,
+                  top: `${getPositionFromTime(lyric.startTime)}%`,
+                  height: `${getPositionFromTime(lyric.endTime - lyric.startTime)}%`,
                 }}
                 onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'move')}
                 onClick={(e) => {
@@ -180,13 +180,13 @@ export const LyricTimeline = ({
               >
                 {/* Start handle */}
                 <div
-                  className="absolute left-0 top-0 bottom-0 w-2 bg-primary cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute left-0 right-0 top-0 h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
                   onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'start')}
                 />
                 
                 {/* End handle */}
                 <div
-                  className="absolute right-0 top-0 bottom-0 w-2 bg-primary cursor-ew-resize opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute left-0 right-0 bottom-0 h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
                   onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'end')}
                 />
 
@@ -208,7 +208,7 @@ export const LyricTimeline = ({
               
               return (
                 <div className="bg-secondary rounded-lg p-4 space-y-3">
-                  <Label className="text-sm font-medium">Selected Lyric</Label>
+                  <Label className="text-sm font-medium text-foreground">Selected Lyric</Label>
                   <p className="text-sm text-foreground">"{lyric.text}"</p>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -219,7 +219,7 @@ export const LyricTimeline = ({
                           const time = parseFloat(e.target.value.replace(':', '')) || 0;
                           onUpdateLyric(lyric.id, time, lyric.endTime);
                         }}
-                        className="text-xs"
+                        className="text-xs bg-background text-foreground"
                       />
                     </div>
                     <div>
@@ -230,7 +230,7 @@ export const LyricTimeline = ({
                           const time = parseFloat(e.target.value.replace(':', '')) || 0;
                           onUpdateLyric(lyric.id, lyric.startTime, time);
                         }}
-                        className="text-xs"
+                        className="text-xs bg-background text-foreground"
                       />
                     </div>
                   </div>

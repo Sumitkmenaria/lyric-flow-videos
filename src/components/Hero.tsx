@@ -1,8 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Play, Upload, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleStartCreating = () => {
+    navigate('/create');
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background */}
@@ -36,7 +43,11 @@ const Hero = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-lg px-8 py-6">
+          <Button 
+            size="lg" 
+            className="bg-gradient-primary hover:shadow-glow transition-all duration-300 text-lg px-8 py-6"
+            onClick={handleStartCreating}
+          >
             <Upload className="w-5 h-5 mr-2" />
             Start Creating
           </Button>

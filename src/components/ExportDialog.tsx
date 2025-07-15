@@ -60,7 +60,7 @@ export const ExportDialog = ({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="bg-gradient-card border-glass max-w-2xl">
+      <DialogContent className="bg-gradient-card border-glass max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-foreground">
             Export Your Music Video
@@ -68,12 +68,12 @@ export const ExportDialog = ({
         </DialogHeader>
 
         {!isExporting ? (
-          <div className="space-y-6">
+          <div className="space-y-6 p-2">
             {/* Format Selection */}
             <div className="space-y-3">
               <Label className="text-lg font-semibold">Video Format</Label>
               <RadioGroup value={format} onValueChange={setFormat as any}>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="bg-secondary border-glass p-4 hover:border-primary transition-colors">
                     <label className="flex items-center space-x-3 cursor-pointer">
                       <RadioGroupItem value="vertical" />
@@ -203,7 +203,7 @@ export const ExportDialog = ({
           </div>
         ) : (
           /* Export Progress */
-          <div className="space-y-6 text-center">
+          <div className="space-y-6 text-center p-6">
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-foreground">
                 Generating Your Video...

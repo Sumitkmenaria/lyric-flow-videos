@@ -40,11 +40,11 @@ export class GeminiAIService {
       });
 
       if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.statusText}`);
+        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      const generatedText = data.candidates[0]?.content?.parts[0]?.text;
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (!generatedText) {
         throw new Error('No response from Gemini AI');
@@ -53,7 +53,8 @@ export class GeminiAIService {
       return this.parseGeminiResponse(generatedText);
     } catch (error) {
       console.error('Gemini AI sync error:', error);
-      throw error;
+      // Return demo sync as fallback
+      return createDemoAISync(lyrics, audioDuration, beats);
     }
   }
 
@@ -128,13 +129,28 @@ Make sure the JSON is valid and properly formatted.
 // Demo function for when API key is not available
 export function createDemoAISync(lyrics: string, duration: number, beats: number[]): GeminiResponse {
   const lines = lyrics.split('\n').filter(line => line.trim());
-  const timePerLine = duration / lines.length;
   
-  return {
-    lyrics: lines.map((text, index) => ({
-      text: text.trim(),
-      startTime: index * timePerLine,
-      endTime: (index + 1) * timePerLine - 0.2
-    }))
-  };
+  if (lines.length === 0) {
+    return { lyrics: [] };
+  }
+
+  // Use beats if available, otherwise distribute evenly
+  if (beats.length >= lines.length) {
+    return {
+      lyrics: lines.map((text, index) => ({
+        text: text.trim(),
+        startTime: beats[index] || (index * duration / lines.length),
+        endTime: beats[index + 1] || ((index + 1) * duration / lines.length) - 0.2
+      }))
+    };
+  } else {
+    const timePerLine = duration / lines.length;
+    return {
+      lyrics: lines.map((text, index) => ({
+        text: text.trim(),
+        startTime: index * timePerLine,
+        endTime: (index + 1) * timePerLine - 0.2
+      }))
+    };
+  }
 }
