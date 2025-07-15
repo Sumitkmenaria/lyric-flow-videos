@@ -131,6 +131,7 @@ export const VideoPreview = ({
 
         <div className="flex justify-center">
           <div className="relative">
+            <div className="max-w-full overflow-hidden">
             <VideoCanvas
               width={config.width}
               height={config.height}
@@ -141,6 +142,7 @@ export const VideoPreview = ({
               processedAudio={processedAudio}
               isPlaying={isPlaying}
             />
+            </div>
             
             {/* Play overlay for when paused */}
             {!isPlaying && (

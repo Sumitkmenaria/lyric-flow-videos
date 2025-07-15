@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Edit, Plus, Trash2, Play, Wand2 } from 'lucide-react';
 import { LyricLine } from '@/hooks/useLyricSync';
+import { LyricTimeline } from './LyricTimeline';
+import { GeminiAIService, createDemoAISync } from '@/lib/geminiAI';
 
 interface LyricEditorProps {
   lyrics: LyricLine[];
@@ -15,6 +17,10 @@ interface LyricEditorProps {
   onUpdateLyric: (id: string, startTime: number, endTime: number) => void;
   onAutoSync: () => void;
   onManualSync: (lyricsText: string) => void;
+  currentTime?: number;
+  isPlaying?: boolean;
+  onSeek?: (time: number) => void;
+  onTogglePlay?: () => void;
 }
 
 export const LyricEditor = ({
@@ -24,9 +30,15 @@ export const LyricEditor = ({
   onUpdateLyric,
   onAutoSync,
   onManualSync,
+  currentTime = 0,
+  isPlaying = false,
+  onSeek = () => {},
+  onTogglePlay = () => {},
 }: LyricEditorProps) => {
   const [editingLyric, setEditingLyric] = useState<LyricLine | null>(null);
   const [lyricsText, setLyricsText] = useState(lyrics.map(l => l.text).join('\n'));
+  const [isAISyncing, setIsAISyncing] = useState(false);
+  const [geminiApiKey, setGeminiApiKey] = useState('');
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -66,6 +78,39 @@ export const LyricEditor = ({
     onManualSync(lyricsText);
   };
 
+  const handleAISync = async () => {
+    setIsAISyncing(true);
+    try {
+      if (geminiApiKey.trim()) {
+        // Use real Gemini AI
+        const geminiService = new GeminiAIService(geminiApiKey);
+        const result = await geminiService.syncLyricsWithAudio(lyricsText, duration, beats);
+        
+        // Update lyrics with AI results
+        result.lyrics.forEach((aiLyric, index) => {
+          const existingLyric = lyrics[index];
+          if (existingLyric) {
+            onUpdateLyric(existingLyric.id, aiLyric.startTime, aiLyric.endTime);
+          }
+        });
+      } else {
+        // Use demo AI sync
+        const result = createDemoAISync(lyricsText, duration, beats);
+        result.lyrics.forEach((aiLyric, index) => {
+          const existingLyric = lyrics[index];
+          if (existingLyric) {
+            onUpdateLyric(existingLyric.id, aiLyric.startTime, aiLyric.endTime);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('AI sync failed:', error);
+      // Fallback to regular auto-sync
+      onAutoSync();
+    } finally {
+      setIsAISyncing(false);
+    }
+  };
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -75,14 +120,51 @@ export const LyricEditor = ({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="bg-gradient-card border-glass max-w-4xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="bg-gradient-card border-glass max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-foreground">
             Lyric Timing Editor
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
+        <div className="space-y-6 overflow-y-auto max-h-[70vh]">
+          {/* AI Configuration */}
+          <Card className="bg-secondary border-glass p-4">
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold">AI-Powered Sync (Optional)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  type="password"
+                  placeholder="Enter Gemini API Key for AI sync (optional)"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  className="flex-1 text-xs"
+                />
+                <Button size="sm" onClick={handleAISync} disabled={isAISyncing}>
+                  <Wand2 className="w-4 h-4 mr-1" />
+                  {isAISyncing ? 'AI Syncing...' : 'AI Sync'}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Get your free API key from Google AI Studio. Leave empty to use demo sync.
+              </p>
+            </div>
+          </Card>
+
+          {/* Timeline Editor */}
+          <LyricTimeline
+            lyrics={lyrics}
+            duration={duration}
+            currentTime={currentTime}
+            isPlaying={isPlaying}
+            onUpdateLyric={onUpdateLyric}
+            onSeek={onSeek}
+            onTogglePlay={onTogglePlay}
+            onAISync={handleAISync}
+            isAISyncing={isAISyncing}
+          />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Bulk Editor */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -90,7 +172,7 @@ export const LyricEditor = ({
               <div className="flex space-x-2">
                 <Button size="sm" onClick={onAutoSync} variant="outline">
                   <Wand2 className="w-4 h-4 mr-1" />
-                  Auto-Sync
+                  Beat Sync
                 </Button>
                 <Button size="sm" onClick={handleBulkUpdate}>
                   <Plus className="w-4 h-4 mr-1" />
@@ -108,7 +190,7 @@ export const LyricEditor = ({
 
             <div className="text-sm text-muted-foreground space-y-1">
               <p>• Each line will become a separate lyric segment</p>
-              <p>• Use Auto-Sync to distribute lyrics across detected beats</p>
+              <p>• Use Beat Sync to distribute lyrics across detected beats</p>
               <p>• Manual timing adjustments available in the timing panel</p>
             </div>
           </div>
@@ -161,6 +243,7 @@ export const LyricEditor = ({
               ))}
             </div>
           </div>
+        </div>
         </div>
 
         {/* Beat Information */}

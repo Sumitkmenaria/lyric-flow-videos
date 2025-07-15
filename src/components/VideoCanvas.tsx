@@ -229,7 +229,7 @@ export const VideoCanvas = ({
       ref={canvasRef}
       width={width}
       height={height}
-      className="w-full h-auto border border-glass rounded-lg shadow-card"
+      className="w-full h-auto border border-glass rounded-lg shadow-card max-w-full"
       style={{ aspectRatio: `${width}/${height}` }}
     />
   );
