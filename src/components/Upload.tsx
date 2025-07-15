@@ -343,6 +343,7 @@ Generated: ${new Date().toISOString()}`;
                 audioFile={audioFile!}
                 coverImage={imageFile!}
                 processedAudio={processedAudio}
+                lyrics={syncedLyrics}
                 onExport={handleExport}
                 isExporting={isExporting}
                 exportProgress={exportProgress}

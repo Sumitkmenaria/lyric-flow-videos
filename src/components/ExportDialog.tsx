@@ -8,11 +8,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Download, Smartphone, Monitor, Zap, Gauge, Crown } from 'lucide-react';
 import { ExportOptions, estimateExportTime } from '@/lib/videoProcessor';
 import { ProcessedAudio } from '@/hooks/useAudioProcessor';
+import { createVideoBlob, renderVideoFrames, downloadVideoBlob, VideoExportData } from '@/lib/videoExporter';
+import { LyricLine } from '@/hooks/useLyricSync';
+import { VIDEO_CONFIGS } from '@/lib/videoProcessor';
 
 interface ExportDialogProps {
   audioFile: File;
   coverImage: File;
   processedAudio: ProcessedAudio;
+  lyrics: LyricLine[];
   onExport: (options: ExportOptions) => Promise<void>;
   isExporting: boolean;
   exportProgress: number;
@@ -22,6 +26,7 @@ export const ExportDialog = ({
   audioFile,
   coverImage,
   processedAudio,
+  lyrics,
   onExport,
   isExporting,
   exportProgress,
@@ -37,10 +42,51 @@ export const ExportDialog = ({
       includeAudio,
     };
 
+    await exportVideo(options);
+  };
+
+  const exportVideo = async (options: ExportOptions) => {
     try {
+      const config = VIDEO_CONFIGS[format];
+      
+      // Create off-screen canvas for rendering
+      const canvas = document.createElement('canvas');
+      canvas.width = config.width;
+      canvas.height = config.height;
+      
+      const videoData: VideoExportData = {
+        audioFile,
+        coverImage,
+        processedAudio,
+        lyrics,
+        options,
+      };
+
+      // Start the export process
       await onExport(options);
+      
+      // Render frames and create video
+      await renderVideoFrames(canvas, videoData, (progress) => {
+        // Progress is handled by parent component
+      });
+      
+      const videoBlob = await createVideoBlob(
+        canvas,
+        audioFile,
+        processedAudio.duration,
+        options
+      );
+      
+      // Generate filename
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `lyricmotion-${format}-${quality}-${timestamp}.webm`;
+      
+      // Download the video
+      downloadVideoBlob(videoBlob, filename);
+      
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error('Video export failed:', error);
+      throw error;
     }
   };
 

@@ -127,55 +127,57 @@ export const LyricEditor = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto max-h-[70vh]">
+        <div className="space-y-4 overflow-y-auto max-h-[75vh] px-2">
           {/* AI Configuration */}
-          <Card className="bg-secondary border-glass p-4">
+          <Card className="bg-secondary border-glass p-3 md:p-4">
             <div className="space-y-3">
-              <Label className="text-sm font-semibold">AI-Powered Sync (Optional)</Label>
-              <div className="flex space-x-2">
+              <Label className="text-xs md:text-sm font-semibold">AI-Powered Sync (Optional)</Label>
+              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
                 <Input
                   type="password"
                   placeholder="Enter Gemini API Key for AI sync (optional)"
                   value={geminiApiKey}
                   onChange={(e) => setGeminiApiKey(e.target.value)}
-                  className="flex-1 text-xs"
+                  className="flex-1 text-xs md:text-sm"
                 />
-                <Button size="sm" onClick={handleAISync} disabled={isAISyncing}>
-                  <Wand2 className="w-4 h-4 mr-1" />
+                <Button size="sm" onClick={handleAISync} disabled={isAISyncing} className="w-full md:w-auto">
+                  <Wand2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   {isAISyncing ? 'AI Syncing...' : 'AI Sync'}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Get your free API key from Google AI Studio. Leave empty to use demo sync.
               </p>
             </div>
           </Card>
 
           {/* Timeline Editor */}
-          <LyricTimeline
-            lyrics={lyrics}
-            duration={duration}
-            currentTime={currentTime}
-            isPlaying={isPlaying}
-            onUpdateLyric={onUpdateLyric}
-            onSeek={onSeek}
-            onTogglePlay={onTogglePlay}
-            onAISync={handleAISync}
-            isAISyncing={isAISyncing}
-          />
+          <div className="w-full overflow-hidden">
+            <LyricTimeline
+              lyrics={lyrics}
+              duration={duration}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              onUpdateLyric={onUpdateLyric}
+              onSeek={onSeek}
+              onTogglePlay={onTogglePlay}
+              onAISync={handleAISync}
+              isAISyncing={isAISyncing}
+            />
+          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Bulk Editor */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-lg font-semibold">Lyrics Text</Label>
-              <div className="flex space-x-2">
-                <Button size="sm" onClick={onAutoSync} variant="outline">
-                  <Wand2 className="w-4 h-4 mr-1" />
+              <Label className="text-sm md:text-lg font-semibold">Lyrics Text</Label>
+              <div className="flex flex-col md:flex-row space-y-1 md:space-y-0 md:space-x-2">
+                <Button size="sm" onClick={onAutoSync} variant="outline" className="text-xs">
+                  <Wand2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Beat Sync
                 </Button>
-                <Button size="sm" onClick={handleBulkUpdate}>
-                  <Plus className="w-4 h-4 mr-1" />
+                <Button size="sm" onClick={handleBulkUpdate} className="text-xs">
+                  <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                   Apply
                 </Button>
               </div>
@@ -185,10 +187,10 @@ export const LyricEditor = ({
               value={lyricsText}
               onChange={(e) => setLyricsText(e.target.value)}
               placeholder="Enter lyrics, one line per line..."
-              className="min-h-64 bg-secondary border-glass"
+              className="min-h-32 md:min-h-64 bg-secondary border-glass text-sm"
             />
 
-            <div className="text-sm text-muted-foreground space-y-1">
+            <div className="text-xs md:text-sm text-muted-foreground space-y-1">
               <p>• Each line will become a separate lyric segment</p>
               <p>• Use Beat Sync to distribute lyrics across detected beats</p>
               <p>• Manual timing adjustments available in the timing panel</p>
@@ -196,35 +198,35 @@ export const LyricEditor = ({
           </div>
 
           {/* Individual Timing Editor */}
-          <div className="space-y-4 overflow-y-auto max-h-96">
-            <Label className="text-lg font-semibold">Individual Timing</Label>
+          <div className="space-y-4 overflow-y-auto max-h-64 md:max-h-96">
+            <Label className="text-sm md:text-lg font-semibold">Individual Timing</Label>
             
             <div className="space-y-3">
               {lyrics.map((lyric, index) => (
-                <Card key={lyric.id} className="bg-secondary border-glass p-4">
+                <Card key={lyric.id} className="bg-secondary border-glass p-3 md:p-4">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Line {index + 1}</span>
+                      <span className="text-xs md:text-sm font-medium">Line {index + 1}</span>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleEditLyric(lyric)}
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                     </div>
 
-                    <p className="text-sm text-foreground font-medium">
+                    <p className="text-xs md:text-sm text-foreground font-medium break-words">
                       "{lyric.text}"
                     </p>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 gap-2 text-xs md:text-sm">
                       <div>
-                        <Label className="text-xs text-muted-foreground">Start</Label>
+                        <Label className="text-xs md:text-sm text-muted-foreground">Start</Label>
                         <p className="font-mono">{formatTime(lyric.startTime)}</p>
                       </div>
                       <div>
-                        <Label className="text-xs text-muted-foreground">End</Label>
+                        <Label className="text-xs md:text-sm text-muted-foreground">End</Label>
                         <p className="font-mono">{formatTime(lyric.endTime)}</p>
                       </div>
                     </div>
@@ -247,8 +249,8 @@ export const LyricEditor = ({
         </div>
 
         {/* Beat Information */}
-        <Card className="bg-secondary border-glass p-4">
-          <div className="flex items-center justify-between text-sm">
+        <Card className="bg-secondary border-glass p-3 md:p-4 mt-4">
+          <div className="grid grid-cols-2 md:flex md:items-center md:justify-between gap-2 text-xs md:text-sm">
             <div>
               <span className="text-muted-foreground">Detected Beats: </span>
               <span className="font-medium text-foreground">{beats.length}</span>

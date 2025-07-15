@@ -104,39 +104,45 @@ export const LyricTimeline = ({
   }, []);
 
   return (
-    <Card className="bg-gradient-card border-glass p-6 shadow-card">
+    <Card className="bg-gradient-card border-glass p-3 md:p-6 shadow-card">
       <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Label className="text-lg font-semibold text-foreground">Lyric Timeline</Label>
-          <div className="flex space-x-2">
+          <Label className="text-sm md:text-lg font-semibold text-foreground">Lyric Timeline</Label>
+          <div className="flex flex-col md:flex-row space-y-1 md:space-y-0 md:space-x-2">
             <Button
               size="sm"
               onClick={onAISync}
               disabled={isAISyncing}
-              className="bg-gradient-primary"
+              className="bg-gradient-primary text-xs md:text-sm"
             >
-              <Sparkles className="w-4 h-4 mr-1" />
+              <Sparkles className="w-3 h-3 md:w-4 md:h-4 mr-1" />
               {isAISyncing ? 'AI Syncing...' : 'AI Auto-Sync'}
             </Button>
-            <Button size="sm" variant="outline" onClick={onTogglePlay}>
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <Button size="sm" variant="outline" onClick={onTogglePlay} className="text-xs md:text-sm">
+              {isPlaying ? <Pause className="w-3 h-3 md:w-4 md:h-4" /> : <Play className="w-3 h-3 md:w-4 md:h-4" />}
             </Button>
           </div>
         </div>
 
         {/* Vertical Timeline */}
         <div className="space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground">
+          <div className="flex justify-between text-xs md:text-sm text-muted-foreground">
             <span>0:00</span>
             <span>{formatTime(duration)}</span>
           </div>
           
           <div
             ref={timelineRef}
-            className="relative w-full h-96 bg-secondary rounded-lg border border-glass cursor-pointer overflow-hidden"
+            className="relative w-full h-64 md:h-96 lg:h-[500px] bg-secondary rounded-lg border border-glass cursor-pointer overflow-y-auto overflow-x-hidden"
             onClick={handleTimelineClick}
             onMouseMove={handleMouseMove}
+            style={{ 
+              minHeight: '250px',
+              maxHeight: '80vh',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'hsl(var(--primary)) hsl(var(--secondary))'
+            }}
           >
             {/* Time markers */}
             {Array.from({ length: Math.ceil(duration / 10) }, (_, i) => (
@@ -145,7 +151,7 @@ export const LyricTimeline = ({
                 className="absolute left-0 right-0 h-px bg-border"
                 style={{ top: `${(i * 10 / duration) * 100}%` }}
               >
-                <span className="absolute left-1 -top-2 text-xs text-muted-foreground bg-secondary px-1 rounded">
+                <span className="absolute left-1 -top-2 text-xs md:text-sm text-muted-foreground bg-secondary px-1 rounded">
                   {Math.floor(i * 10 / 60)}:{((i * 10) % 60).toString().padStart(2, '0')}
                 </span>
               </div>
@@ -156,14 +162,14 @@ export const LyricTimeline = ({
               className="absolute left-0 right-0 h-0.5 bg-primary z-20"
               style={{ top: `${getPositionFromTime(currentTime)}%` }}
             >
-              <div className="absolute -left-1 -top-1 w-3 h-3 bg-primary rounded-full" />
+              <div className="absolute -left-1 -top-1 w-2 h-2 md:w-3 md:h-3 bg-primary rounded-full" />
             </div>
 
             {/* Lyric blocks */}
             {lyrics.map((lyric, index) => (
               <div
                 key={lyric.id}
-                className={`absolute left-2 right-2 rounded cursor-move transition-all ${
+                className={`absolute left-1 right-1 md:left-2 md:right-2 rounded cursor-move transition-all ${
                   selectedLyric === lyric.id
                     ? 'bg-accent border-2 border-primary'
                     : 'bg-accent/70 border border-accent hover:bg-accent'
@@ -171,6 +177,7 @@ export const LyricTimeline = ({
                 style={{
                   top: `${getPositionFromTime(lyric.startTime)}%`,
                   height: `${getPositionFromTime(lyric.endTime - lyric.startTime)}%`,
+                  minHeight: '20px',
                 }}
                 onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'move')}
                 onClick={(e) => {
@@ -180,18 +187,18 @@ export const LyricTimeline = ({
               >
                 {/* Start handle */}
                 <div
-                  className="absolute left-0 right-0 top-0 h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute left-0 right-0 top-0 h-1 md:h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
                   onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'start')}
                 />
                 
                 {/* End handle */}
                 <div
-                  className="absolute left-0 right-0 bottom-0 h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute left-0 right-0 bottom-0 h-1 md:h-2 bg-primary cursor-ns-resize opacity-0 hover:opacity-100 transition-opacity"
                   onMouseDown={(e) => handleLyricMouseDown(e, lyric.id, 'end')}
                 />
 
                 {/* Lyric text */}
-                <div className="px-2 py-1 text-xs font-medium text-accent-foreground truncate">
+                <div className="px-1 md:px-2 py-1 text-xs md:text-sm font-medium text-accent-foreground truncate">
                   {lyric.text}
                 </div>
               </div>
@@ -207,30 +214,30 @@ export const LyricTimeline = ({
               if (!lyric) return null;
               
               return (
-                <div className="bg-secondary rounded-lg p-4 space-y-3">
-                  <Label className="text-sm font-medium text-foreground">Selected Lyric</Label>
-                  <p className="text-sm text-foreground">"{lyric.text}"</p>
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="bg-secondary rounded-lg p-3 md:p-4 space-y-3">
+                  <Label className="text-xs md:text-sm font-medium text-foreground">Selected Lyric</Label>
+                  <p className="text-xs md:text-sm text-foreground break-words">"{lyric.text}"</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs text-muted-foreground">Start Time</Label>
+                      <Label className="text-xs md:text-sm text-muted-foreground">Start Time</Label>
                       <Input
                         value={formatTime(lyric.startTime)}
                         onChange={(e) => {
                           const time = parseFloat(e.target.value.replace(':', '')) || 0;
                           onUpdateLyric(lyric.id, time, lyric.endTime);
                         }}
-                        className="text-xs bg-background text-foreground"
+                        className="text-xs md:text-sm bg-background text-foreground"
                       />
                     </div>
                     <div>
-                      <Label className="text-xs text-muted-foreground">End Time</Label>
+                      <Label className="text-xs md:text-sm text-muted-foreground">End Time</Label>
                       <Input
                         value={formatTime(lyric.endTime)}
                         onChange={(e) => {
                           const time = parseFloat(e.target.value.replace(':', '')) || 0;
                           onUpdateLyric(lyric.id, lyric.startTime, time);
                         }}
-                        className="text-xs bg-background text-foreground"
+                        className="text-xs md:text-sm bg-background text-foreground"
                       />
                     </div>
                   </div>
@@ -241,7 +248,7 @@ export const LyricTimeline = ({
         )}
 
         {/* Instructions */}
-        <div className="text-xs text-muted-foreground space-y-1">
+        <div className="text-xs md:text-sm text-muted-foreground space-y-1">
           <p>• Click on timeline to seek</p>
           <p>• Drag lyric blocks to move them</p>
           <p>• Drag edges to adjust timing</p>
