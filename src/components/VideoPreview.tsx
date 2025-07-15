@@ -16,6 +16,10 @@ interface VideoPreviewProps {
   getCurrentLyric: (time: number) => LyricLine | null;
   getUpcomingLyrics: (time: number) => LyricLine[];
   format: 'vertical' | 'horizontal';
+  currentTime: number;
+  isPlaying: boolean;
+  onSeek: (value: number[]) => void;
+  onTogglePlay: () => void;
 }
 
 export const VideoPreview = ({
@@ -26,10 +30,12 @@ export const VideoPreview = ({
   getCurrentLyric,
   getUpcomingLyrics,
   format,
+  currentTime,
+  isPlaying,
+  onSeek,
+  onTogglePlay,
 }: VideoPreviewProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [audioUrl, setAudioUrl] = useState<string>('');
 
@@ -46,45 +52,14 @@ export const VideoPreview = ({
     audio.volume = volume;
     audioRef.current = audio;
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
       URL.revokeObjectURL(url);
       audio.pause();
     };
   }, [audioFile, volume]);
 
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play().catch(console.error);
-    }
-    setIsPlaying(!isPlaying);
-  };
-
   const handleSeek = (value: number[]) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const newTime = value[0];
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
+    onSeek(value);
   };
 
   const handleVolumeChange = (value: number[]) => {
@@ -97,17 +72,13 @@ export const VideoPreview = ({
   };
 
   const skipBackward = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = Math.max(0, audio.currentTime - 10);
+    const newTime = Math.max(0, currentTime - 10);
+    onSeek([newTime]);
   };
 
   const skipForward = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+    const newTime = Math.min(processedAudio.duration, currentTime + 10);
+    onSeek([newTime]);
   };
 
   const formatTime = (seconds: number) => {
@@ -149,7 +120,7 @@ export const VideoPreview = ({
               <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 rounded-lg">
                 <Button
                   size="lg"
-                  onClick={togglePlayPause}
+                  onClick={onTogglePlay}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-16 h-16"
                 >
                   <Play className="w-8 h-8 ml-1" />
@@ -184,7 +155,7 @@ export const VideoPreview = ({
               <SkipBack className="w-4 h-4" />
             </Button>
             
-            <Button onClick={togglePlayPause} size="lg" className="rounded-full">
+            <Button onClick={onTogglePlay} size="lg" className="rounded-full">
               {isPlaying ? (
                 <Pause className="w-6 h-6" />
               ) : (
